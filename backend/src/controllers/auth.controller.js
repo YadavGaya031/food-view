@@ -5,87 +5,130 @@ const jwt = require("jsonwebtoken");
 const { default: mongoose } = require("mongoose");
 
 async function registerUser(req, res) {
-  const { fullName, email, password } = req.body;
-  const isUserExist = await userModel.findOne({ email });
+  try {
+    const { fullName, email, password } = req.body;
 
-  if (isUserExist) {
-    return res.status(400).json({
-      message: "email already exists.",
+    if (!fullName || !email || !password) {
+      return res.status(400).json({
+        message: "Full name, email, and password are required",
+      });
+    }
+
+    if (!process.env.SECRET_KEY) {
+      console.error('SECRET_KEY environment variable is not set');
+      return res.status(500).json({
+        message: "Server configuration error",
+      });
+    }
+
+    const isUserExist = await userModel.findOne({ email });
+
+    if (isUserExist) {
+      return res.status(400).json({
+        message: "email already exists.",
+      });
+    }
+
+    const hashPassword = await bcrypt.hash(password, 10);
+
+    const user = new userModel({
+      fullName,
+      email,
+      password: hashPassword,
+    });
+
+    await user.save();
+
+    console.log('User registered successfully:', user.email);
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+      },
+      process.env.SECRET_KEY
+    );
+
+    res.cookie("token", token);
+
+    res.status(201).json({
+      message: "user registered successfully",
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error('Error in registerUser:', error);
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
     });
   }
-
-  const hashPassword = await bcrypt.hash(password, 10);
-
-  const user = new userModel({
-    fullName,
-    email,
-    password: hashPassword,
-  });
-
-  await user.save();
-
-  console.log(process.env.SECRET_KEY);
-
-  const token = jwt.sign(
-    {
-      id: user._id,
-    },
-    process.env.SECRET_KEY
-  );
-
-  res.cookie("token", token);
-
-  res.status(201).json({
-    message: "user registered successfully",
-    user: {
-      _id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-    },
-  });
 }
 
 async function loginUser(req, res) {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  const user = await userModel.findOne({ email });
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password are required",
+      });
+    }
 
-  if (!user) {
-    return res.status(400).json({
-      message: "Invalid email or password",
+    if (!process.env.SECRET_KEY) {
+      console.error('SECRET_KEY environment variable is not set');
+      return res.status(500).json({
+        message: "Server configuration error",
+      });
+    }
+
+    const user = await userModel.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid email or password",
+      });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(400).json({
+        message: "Invalid email or password",
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+      },
+      process.env.SECRET_KEY
+    );
+
+    res.cookie("token", token, {
+      httpOnly: true, // Not accessible via JS (more secure)
+      secure: process.env.NODE_ENV === "production", // Only send over HTTPS in prod
+      sameSite: "lax", // Allows sending cookies on same-site and top-level cross-site navigations
+      maxAge: 24 * 60 * 60 * 1000, // 1 day expiration (optional)
+    });
+
+    res.status(200).json({
+      message: "user logged in successfully",
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error('Error in loginUser:', error);
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
     });
   }
-
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-
-  if (!isPasswordValid) {
-    return res.status(400).json({
-      message: "Invalid email or password",
-    });
-  }
-
-  const token = jwt.sign(
-    {
-      id: user._id,
-    },
-    process.env.SECRET_KEY
-  );
-
-  res.cookie("token", token, {
-    httpOnly: true, // Not accessible via JS (more secure)
-    secure: process.env.NODE_ENV === "production", // Only send over HTTPS in prod
-    sameSite: "lax", // Allows sending cookies on same-site and top-level cross-site navigations
-    maxAge: 24 * 60 * 60 * 1000, // 1 day expiration (optional)
-  });
-
-  res.status(200).json({
-    message: "user logged in successfully",
-    user: {
-      _id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-    },
-  });
 }
 
 async function logout(req, res) {

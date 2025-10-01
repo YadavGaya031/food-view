@@ -60,6 +60,17 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 })
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        hasSecretKey: !!process.env.SECRET_KEY,
+        hasMongoUri: !!process.env.MONGODB_URI
+    });
+})
+
 app.use('/api/auth', authRoutes);
 app.use('/api/food', foodRoutes);
 app.use('/api/food-partner', foodPartnerRoutes);
