@@ -110,7 +110,7 @@ async function loginUser(req, res) {
     res.cookie("token", token, {
       httpOnly: true, // Not accessible via JS (more secure)
       secure: process.env.NODE_ENV === "production", // Only send over HTTPS in prod
-      sameSite: "lax", // Allows sending cookies on same-site and top-level cross-site navigations
+      sameSite: "none", // Allows sending cookies on same-site and top-level cross-site navigations
       maxAge: 24 * 60 * 60 * 1000, // 1 day expiration (optional)
     });
 
@@ -208,8 +208,8 @@ async function loginFoodPartner(req, res) {
 
   res.cookie("token", token, {
     httpOnly: true, // Not accessible via JS (more secure)
-    secure: false, // Only send over HTTPS in prod
-    sameSite: "lax", // Allows sending cookies on same-site and top-level cross-site navigations
+    secure: true, // Only send over HTTPS in prod
+    sameSite: "none", // Allows sending cookies on same-site and top-level cross-site navigations
     maxAge: 24 * 60 * 60 * 1000, // 1 day expiration (optional)
   });
 
