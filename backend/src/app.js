@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-    origin: 'http://localhost:5173', // ✅ This should match your frontend port
+    origin: 'https://food-view-6oeoc9jgr-yadavgaya031s-projects.vercel.app/', // ✅ This should match your frontend port
     credentials: true
 }));
 
