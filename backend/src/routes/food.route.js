@@ -9,7 +9,7 @@ const upload = multer({
 });
 
 router.post(
-  "/",
+  "/create-food",
   authMiddleware.authFoodPartnerMiddleware,
   upload.single('video'),
   foodController.createFood
