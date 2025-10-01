@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth.route');
 const foodRoutes = require('./routes/food.route');
 const foodPartnerRoutes = require('./routes/food-partner.route');
 const cors = require('cors');
+const orderRoutes = require('./routes/orders.route');
 
 const app = express();
 
@@ -28,6 +29,6 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/food', foodRoutes);
 app.use('/api/food-partner', foodPartnerRoutes);
+app.use('/api/orders', orderRoutes);
 
 module.exports = app;
-

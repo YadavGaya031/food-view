@@ -17,6 +17,21 @@ const foodPartnerSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    textAddress:{
+        type: String,
+        default: ''
+    },
+    location: {
+        type: {
+            type: String,
+            enum: ['Point'],
+            default: 'Point'
+        },
+        coordinates: {
+            type: [Number], // [lng, lat]
+            default: [0, 0]
+        }
+    },
     email:{
         type: String,
         required: true,
@@ -30,6 +45,9 @@ const foodPartnerSchema = new mongoose.Schema({
         timestamps:true
     }
 )
+
+// 2dsphere index for geospatial queries
+foodPartnerSchema.index({ location: '2dsphere' })
 
 const foodPartnerModel = mongoose.model("foodPartner", foodPartnerSchema);
 

@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const saveSchema = new mongoose.Schema({
+const commentSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -10,8 +10,14 @@ const saveSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "food",
         required: true
+    },
+    text: {
+        type: String,
+        required: true
     }
 }, { timestamps: true })
 
-const saveModel = mongoose.model("save", saveSchema);
-module.exports = saveModel;
+const CommentModel = mongoose.model("comment", commentSchema);
+module.exports = CommentModel;
+
+
