@@ -211,11 +211,7 @@ backend/
   phone: Number,
   address: String,
   email: String (unique),
-  password: String (hashed),
-  location: {
-    type: "Point",
-    coordinates: [lng, lat]
-  }
+  password: String (hashed)
 }
 ```
 
