@@ -13,6 +13,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+
 // CORS configuration
 const corsOptions = {
     origin: function (origin, callback) {
