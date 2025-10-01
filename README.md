@@ -342,7 +342,7 @@ This project is licensed under the ISC License - see the LICENSE file for detail
 ## 👨‍💻 Author
 
 **Gaya Singh**
-- GitHub: [@gayasingh](https://github.com/gayasingh)
+- GitHub: [@YadavGaya031](https://github.com/YadavGaya031)
 
 ## 🙏 Acknowledgments
 
