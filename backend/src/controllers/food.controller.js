@@ -63,6 +63,7 @@ async function likeFood(req, res) {
 
     return res.status(200).json({
       message: "food unliked successfully",
+      like: false,
     });
   }
 
@@ -77,7 +78,7 @@ async function likeFood(req, res) {
 
   res.status(201).json({
     message: "food liked successfully",
-    like,
+    like: true,
   });
 }
 
@@ -98,6 +99,7 @@ async function saveFood(req, res) {
 
     return res.status(200).json({
       message: "food unsaved successfully",
+      save: false,
     });
   }
 
@@ -112,7 +114,7 @@ async function saveFood(req, res) {
 
   res.status(201).json({
     message: "food saved successfully",
-    save,
+    save: true,
   });
 }
 
@@ -132,19 +134,45 @@ async function getSavedFoods(req, res) {
 
 // Social: comments
 async function addComment(req, res) {
-  const user = req.user;
-  const { foodId, text } = req.body;
-  if (!text) {
-    return res.status(400).json({ message: "comment text is required" });
+  try {
+    const user = req.user;
+    const { foodId, text } = req.body;
+    
+    if (!text) {
+      return res.status(400).json({ message: "comment text is required" });
+    }
+    
+    if (!user || !user._id) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+    
+    console.log('Adding comment by user:', user._id, 'for food:', foodId);
+    
+    const comment = await CommentModel.create({ user: user._id, food: foodId, text });
+    res.status(201).json({ message: "comment added", comment });
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
   }
-  const comment = await CommentModel.create({ user: user._id, food: foodId, text });
-  res.status(201).json({ message: "comment added", comment });
 }
 
 async function listComments(req, res) {
-  const { foodId } = req.params;
-  const comments = await CommentModel.find({ food: foodId }).populate("user", "fullName").sort({ createdAt: -1 });
-  res.status(200).json({ message: "comments fetched", comments });
+  try {
+    const { foodId } = req.params;
+    console.log('Fetching comments for food:', foodId);
+    
+    const comments = await CommentModel.find({ food: foodId }).populate("user", "fullName").sort({ createdAt: -1 });
+    
+    console.log('Comments found:', comments.length);
+    comments.forEach(comment => {
+      console.log('Comment by:', comment.user?.fullName || 'Unknown user');
+    });
+    
+    res.status(200).json({ message: "comments fetched", comments });
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
 }
 
 // Social: ratings
@@ -163,7 +191,7 @@ async function rateFood(req, res) {
 
   // recompute aggregates
   const agg = await RatingModel.aggregate([
-    { $match: { food: require('mongoose').Types.ObjectId.createFromHexString(foodId) } },
+    { $match: { food: new require('mongoose').Types.ObjectId(foodId) } },
     { $group: { _id: "$food", average: { $avg: "$stars" }, count: { $sum: 1 } } }
   ]);
   const average = agg.length ? agg[0].average : 0;
